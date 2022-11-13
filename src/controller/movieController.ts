@@ -21,14 +21,32 @@ async function listMovies(req: Request, res: Response) {
     try {
         const movies: Movie[] = (await connection.query('SELECT * FROM movies;')).rows;
 
-        return res.send(movies);
+        return res.status(200).send(movies);
     } catch (error) {
         return res.status(500).send(error.message);
     }
 }
 
 async function deleteMovie(req: Request, res: Response) {
+    const id: string = req.params.id;
+
+    try {
+        const movie: Movie = (await connection.query('SELECT movies.id, name, streaming, genre, status FROM movies WHERE movies.id = $1;', [id])).rows[0];
+
+        if (!movie) {
+            return res.status(404).send("This movie doesn't exists!");
+        }
+
+        await connection.query('DELETE FROM movies WHERE id = $1;', [id]);
+
+        return res.sendStatus(202);
+    } catch (error) {
+        return res.status(500).send(error.message);
+    }
+}
+
+async function updateWatchedMovie(req: Request, res: Response) {
 
 }
 
-export { createMovie, listMovies, deleteMovie };
+export { createMovie, listMovies, deleteMovie, updateWatchedMovie };
