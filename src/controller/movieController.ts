@@ -45,8 +45,23 @@ async function deleteMovie(req: Request, res: Response) {
     }
 }
 
-async function updateWatchedMovie(req: Request, res: Response) {
+async function updateMovie(req: Request, res: Response) {
+    const id: string = req.params.id;
+    const { name, streaming, genre, status }: Movie = req.body;
 
+    try {
+        const movie: Movie = (await connection.query('SELECT movies.id, name, streaming, genre, status FROM movies WHERE movies.id = $1;', [id])).rows[0];
+
+        if (!movie) {
+            return res.status(404).send("This movie doesn't exists!");
+        }
+
+        await connection.query('UPDATE movies SET name = $1, streaming = $2, genre = $3, status = $4 WHERE id = $5;', [name, streaming, genre, status, id]);
+
+        return res.sendStatus(202);
+    } catch (error) {
+        return res.status(500).send(error.message);
+    }
 }
 
-export { createMovie, listMovies, deleteMovie, updateWatchedMovie };
+export { createMovie, listMovies, deleteMovie, updateMovie };
